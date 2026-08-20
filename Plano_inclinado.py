@@ -13,7 +13,7 @@ st.set_page_config(
 )
 
 # ============================================
-# CSS PERSONALIZADO (Mantendo o seu estilo)
+# CSS PERSONALIZADO
 # ============================================
 st.markdown("""
 <style>
@@ -37,16 +37,6 @@ st.markdown("""
         border-left: 4px solid;
         margin-bottom: 1rem;
     }
-    .formula-box {
-        background: #1a1a2e;
-        color: #fff;
-        padding: 0.8rem 1.2rem;
-        border-radius: 10px;
-        font-family: 'Courier New', monospace;
-        font-size: 1.1rem;
-        text-align: center;
-        margin: 0.5rem 0;
-    }
     .step-box {
         background: #fff8e1;
         border-radius: 10px;
@@ -60,130 +50,150 @@ st.markdown("""
 # ============================================
 # FUNÇÕES DE PLOTAGEM (PLOTLY)
 # ============================================
-def plot_plano_horizontal(massa, forca_aplicada, atrito):
-    """Desenha um bloco no plano horizontal com vetores de força"""
+def plot_plano_horizontal(massa, forca_aplicada, mu):
+    """Desenha um bloco no plano horizontal com vetores de força ajustados"""
     fig = go.Figure()
+    g = 10
+    normal = massa * g
+    atrito = normal * mu
 
     # Chão
-    fig.add_shape(type="rect", x0=-5, y0=-1, x1=5, y1=0,
+    fig.add_shape(type="rect", x0=-6, y0=-1, x1=6, y1=0,
                   fillcolor="#bdc3c7", line=dict(width=0))
     
-    # Bloco
-    fig.add_shape(type="rect", x0=-1, y0=0, x1=1, y1=2,
+    # Bloco (centro em x=0, y=1)
+    fig.add_shape(type="rect", x0=-1.5, y0=0, x1=1.5, y1=2,
                   fillcolor="#3498db", line=dict(color="#2980b9", width=2))
     
     # Vetor Força Aplicada (Direita)
     if forca_aplicada > 0:
         fig.add_annotation(
-            x=1 + (forca_aplicada/20), y=1, ax=1, ay=1,
+            x=4, y=1, ax=1.5, ay=1,
             xref='x', yref='y', axref='x', ayref='y',
-            showarrow=True, arrowhead=2, arrowsize=1.5, arrowwidth=3, arrowcolor="#2ecc71",
-            text=f"F = {forca_aplicada} N", font=dict(color="#2ecc71", size=14, family="Arial Black"),
-            yshift=10
+            showarrow=True, arrowhead=2, arrowsize=1, arrowwidth=3, arrowcolor="#2ecc71"
         )
+        fig.add_annotation(x=4.5, y=1, text=f"F = {forca_aplicada:.1f} N", showarrow=False, font=dict(color="#2ecc71", size=14))
     
     # Vetor Força de Atrito (Esquerda)
     if atrito > 0:
         fig.add_annotation(
-            x=-1 - (atrito/20), y=0.5, ax=-1, ay=0.5,
+            x=-4, y=0.5, ax=-1.5, ay=0.5,
             xref='x', yref='y', axref='x', ayref='y',
-            showarrow=True, arrowhead=2, arrowsize=1.5, arrowwidth=3, arrowcolor="#e74c3c",
-            text=f"Fat = {atrito} N", font=dict(color="#e74c3c", size=14, family="Arial Black"),
-            yshift=10
+            showarrow=True, arrowhead=2, arrowsize=1, arrowwidth=3, arrowcolor="#e74c3c"
         )
+        fig.add_annotation(x=-4.5, y=0.5, text=f"Fat = {atrito:.1f} N", showarrow=False, font=dict(color="#e74c3c", size=14))
 
-    # Vetor Peso e Normal
+    # Vetor Peso (Baixo)
     fig.add_annotation(
-        x=0, y=-1.5, ax=0, ay=0, xref='x', yref='y', axref='x', ayref='y',
-        showarrow=True, arrowhead=2, arrowwidth=2, arrowcolor="#9b59b6", text="P", yshift=-10
+        x=0, y=-3, ax=0, ay=0, xref='x', yref='y', axref='x', ayref='y',
+        showarrow=True, arrowhead=2, arrowwidth=3, arrowcolor="#9b59b6"
     )
-    fig.add_annotation(
-        x=0, y=3.5, ax=0, ay=2, xref='x', yref='y', axref='x', ayref='y',
-        showarrow=True, arrowhead=2, arrowwidth=2, arrowcolor="#f39c12", text="N", yshift=10
-    )
+    fig.add_annotation(x=0, y=-3.5, text=f"P = {normal:.1f} N", showarrow=False, font=dict(color="#9b59b6", size=14))
 
+    # Vetor Normal (Cima)
+    fig.add_annotation(
+        x=0, y=5, ax=0, ay=2, xref='x', yref='y', axref='x', ayref='y',
+        showarrow=True, arrowhead=2, arrowwidth=3, arrowcolor="#f39c12"
+    )
+    fig.add_annotation(x=0, y=5.5, text=f"N = {normal:.1f} N", showarrow=False, font=dict(color="#f39c12", size=14))
+
+    # Ajuste de layout para evitar sobreposições
     fig.update_layout(
-        xaxis=dict(range=[-5, 5], showgrid=False, zeroline=False, visible=False),
-        yaxis=dict(range=[-2, 4], showgrid=False, zeroline=False, visible=False),
-        plot_bgcolor='white', margin=dict(l=0, r=0, t=0, b=0), height=300
+        xaxis=dict(range=[-6, 6], showgrid=False, zeroline=False, visible=False),
+        yaxis=dict(range=[-4, 6], showgrid=False, zeroline=False, visible=False),
+        plot_bgcolor='white', margin=dict(l=0, r=0, t=10, b=10), height=350
     )
     return fig
 
 def plot_plano_inclinado(massa, angulo_deg):
-    """Desenha um plano inclinado e os vetores decompostos"""
+    """Desenha um plano inclinado até 90º com vetores de tamanho visual fixo para legibilidade"""
     fig = go.Figure()
     
+    g = 10
+    peso = massa * g
     ang_rad = math.radians(angulo_deg)
-    peso = massa * 9.8
     px = peso * math.sin(ang_rad)
     py = peso * math.cos(ang_rad)
     
-    # Geometria do triângulo da rampa
-    L = 8  # Comprimento da base
-    H = L * math.tan(ang_rad)  # Altura
+    # Geometria do triângulo da rampa usando raio fixo para não quebrar nos 90º
+    R = 10 
+    L = R * math.cos(ang_rad)
+    H = R * math.sin(ang_rad)
     
-    # Desenhar Rampa
+    # Desenhar Rampa: Começa alto na esquerda e desce até a direita
+    # Coordenadas: (0,0) -> (L,0) -> (0,H) -> (0,0)
     fig.add_trace(go.Scatter(
-        x=[0, L, L, 0], y=[0, 0, H, 0],
+        x=[0, L, 0, 0], y=[0, 0, H, 0],
         fill="toself", fillcolor="#ecf0f1", line=dict(color="#bdc3c7", width=2),
         showlegend=False, hoverinfo="skip"
     ))
     
-    # Centro do bloco no meio da rampa
+    # Centro da rampa
     cx = L / 2
-    cy = (H / 2) + 0.8  # Deslocamento vertical para apoiar na rampa
+    cy = H / 2
     
-    # Coordenadas do bloco rotacionado (Aproximado para visualização)
-    S = 1.5 # Tamanho do bloco
-    dx1, dy1 = S * math.cos(ang_rad), S * math.sin(ang_rad)
-    dx2, dy2 = -S * math.sin(ang_rad), S * math.cos(ang_rad)
+    # Offset para colocar o bloco sobre a superfície
+    s = 1.0 # Tamanho base do bloco
+    bx = cx + s * math.sin(ang_rad)
+    by = cy + s * math.cos(ang_rad)
+    
+    # Coordenadas do bloco rotacionado
+    def rot(px, py):
+        # Rotacionar por -ang_rad
+        rx = px * math.cos(-ang_rad) - py * math.sin(-ang_rad)
+        ry = px * math.sin(-ang_rad) + py * math.cos(-ang_rad)
+        return bx + rx, by + ry
+
+    p1, p2, p3, p4 = rot(-s, -s), rot(s, -s), rot(s, s), rot(-s, s)
     
     fig.add_trace(go.Scatter(
-        x=[cx - dx1/2 - dx2/2, cx + dx1/2 - dx2/2, cx + dx1/2 + dx2/2, cx - dx1/2 + dx2/2, cx - dx1/2 - dx2/2],
-        y=[cy - dy1/2 - dy2/2, cy + dy1/2 - dy2/2, cy + dy1/2 + dy2/2, cy - dy1/2 + dy2/2, cy - dy1/2 - dy2/2],
+        x=[p1[0], p2[0], p3[0], p4[0], p1[0]],
+        y=[p1[1], p2[1], p3[1], p4[1], p1[1]],
         fill="toself", fillcolor="#3498db", line=dict(color="#2980b9", width=2),
         showlegend=False, hoverinfo="skip"
     ))
     
-    # Escala visual para os vetores
-    escala = 0.05
+    # Escala fixa para os vetores desenhados (evita que invadam o bloco)
+    v_len = 3.5 
     
-    # P (Peso total - aponta para baixo)
+    # P (Peso total - apontando reto para baixo)
     fig.add_annotation(
-        x=cx, y=cy - (peso * escala), ax=cx, ay=cy,
-        xref='x', yref='y', axref='x', ayref='y',
-        showarrow=True, arrowhead=2, arrowwidth=3, arrowcolor="#9b59b6",
-        text=f"P = {peso:.1f}N", font=dict(color="#9b59b6", size=12)
+        x=bx, y=by - v_len, ax=bx, ay=by, xref='x', yref='y', axref='x', ayref='y',
+        showarrow=True, arrowhead=2, arrowwidth=3, arrowcolor="#9b59b6"
     )
+    fig.add_annotation(x=bx, y=by - v_len - 0.8, text=f"P={peso:.1f}N", showarrow=False, font=dict(color="#9b59b6", size=13))
     
-    # Py (Perpendicular à rampa)
+    # Normal (Perpendicular à rampa, para cima e para direita)
+    nx = bx + v_len * math.sin(ang_rad)
+    ny = by + v_len * math.cos(ang_rad)
     fig.add_annotation(
-        x=cx + (py * escala * math.sin(ang_rad)), y=cy - (py * escala * math.cos(ang_rad)),
-        ax=cx, ay=cy, xref='x', yref='y', axref='x', ayref='y',
-        showarrow=True, arrowhead=2, arrowwidth=2, arrowcolor="#e74c3c",
-        text=f"Py = {py:.1f}N", font=dict(color="#e74c3c", size=12)
+        x=nx, y=ny, ax=bx, ay=by, xref='x', yref='y', axref='x', ayref='y',
+        showarrow=True, arrowhead=2, arrowwidth=2, arrowcolor="#f39c12"
     )
+    fig.add_annotation(x=nx + 0.8*math.sin(ang_rad), y=ny + 0.8*math.cos(ang_rad), text=f"N={py:.1f}N", showarrow=False, font=dict(color="#f39c12", size=13))
     
-    # Px (Paralelo à rampa, descendo)
+    # Py (Perpendicular à rampa, para baixo e para esquerda)
+    pyx = bx - v_len * math.sin(ang_rad)
+    pyy = by - v_len * math.cos(ang_rad)
     fig.add_annotation(
-        x=cx - (px * escala * math.cos(ang_rad)), y=cy - (px * escala * math.sin(ang_rad)),
-        ax=cx, ay=cy, xref='x', yref='y', axref='x', ayref='y',
-        showarrow=True, arrowhead=2, arrowwidth=2, arrowcolor="#2ecc71",
-        text=f"Px = {px:.1f}N", font=dict(color="#2ecc71", size=12)
+        x=pyx, y=pyy, ax=bx, ay=by, xref='x', yref='y', axref='x', ayref='y',
+        showarrow=True, arrowhead=2, arrowwidth=2, arrowcolor="#e74c3c"
     )
+    fig.add_annotation(x=pyx - 0.8*math.sin(ang_rad), y=pyy - 0.8*math.cos(ang_rad), text=f"Py={py:.1f}N", showarrow=False, font=dict(color="#e74c3c", size=13))
     
-    # N (Normal - Perpendicular à rampa, para cima)
+    # Px (Paralelo à rampa, deslizando para baixo e para direita)
+    pxx = bx + v_len * math.cos(ang_rad)
+    pxy = by - v_len * math.sin(ang_rad)
     fig.add_annotation(
-        x=cx - (py * escala * math.sin(ang_rad)), y=cy + (py * escala * math.cos(ang_rad)),
-        ax=cx, ay=cy, xref='x', yref='y', axref='x', ayref='y',
-        showarrow=True, arrowhead=2, arrowwidth=2, arrowcolor="#f39c12",
-        text="Normal", font=dict(color="#f39c12", size=12)
+        x=pxx, y=pxy, ax=bx, ay=by, xref='x', yref='y', axref='x', ayref='y',
+        showarrow=True, arrowhead=2, arrowwidth=2, arrowcolor="#2ecc71"
     )
+    fig.add_annotation(x=pxx + 0.8*math.cos(ang_rad), y=pxy - 0.8*math.sin(ang_rad), text=f"Px={px:.1f}N", showarrow=False, font=dict(color="#2ecc71", size=13))
 
     fig.update_layout(
-        xaxis=dict(range=[-1, 10], showgrid=False, zeroline=False, visible=False),
-        yaxis=dict(range=[-3, max(6, H+3)], scaleanchor="x", scaleratio=1, showgrid=False, zeroline=False, visible=False),
-        plot_bgcolor='white', margin=dict(l=0, r=0, t=0, b=0), height=400
+        xaxis=dict(range=[-4, 14], showgrid=False, zeroline=False, visible=False),
+        yaxis=dict(range=[-5, 13], scaleanchor="x", scaleratio=1, showgrid=False, zeroline=False, visible=False),
+        plot_bgcolor='white', margin=dict(l=0, r=0, t=0, b=0), height=450
     )
     return fig
 
@@ -215,41 +225,47 @@ if topico == "2ª Lei de Newton (Horizontal)":
     </div>
     """, unsafe_allow_html=True)
     
+    g = 10  # Gravidade local
+    
     with st.sidebar:
         st.subheader("Parâmetros do Bloco")
         massa = st.slider("Massa (kg)", 1.0, 50.0, 10.0, step=1.0)
-        forca = st.slider("Força Aplicada (N)", 0.0, 200.0, 50.0, step=5.0)
-        atrito = st.slider("Força de Atrito (N)", 0.0, 100.0, 10.0, step=1.0)
+        forca = st.slider("Força Aplicada (N)", 0.0, 200.0, 80.0, step=5.0)
+        mu = st.slider("Coeficiente de Atrito (μ)", 0.0, 1.0, 0.3, step=0.05)
+        
+        st.markdown("---")
+        st.markdown(f"**Gravidade (g):** {g} m/s²")
+        st.markdown(f"**Força Normal (N):** {massa * g} N")
     
     # Cálculos
+    normal = massa * g
+    atrito = mu * normal
     forca_resultante = forca - atrito
+    
     if forca_resultante < 0:
-        forca_resultante = 0  # O bloco não se move se o atrito for maior que a força
+        forca_resultante = 0  # O bloco não se move se a força aplicada não vencer o atrito estático (simplificação didática)
     
     aceleracao = forca_resultante / massa
     
-    st.markdown(f"""
-    <div class="formula-box">
-        F_R = m \cdot a \implies a = \frac{{F_R}}{{m}}
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(r"$$ F_R = m \cdot a \implies a = \frac{F_R}{m} $$")
     
     col1, col2 = st.columns([3, 2])
     with col1:
-        st.plotly_chart(plot_plano_horizontal(massa, forca, atrito), use_container_width=True)
+        st.plotly_chart(plot_plano_horizontal(massa, forca, mu), use_container_width=True)
     
     with col2:
         st.subheader("🧮 Raciocínio")
+        
         st.markdown(f"""
-        <div style="font-size:1.1rem;line-height:2;">
-        1. <b>Força a favor do movimento:</b> {forca} N <br>
-        2. <b>Força contra o movimento (Atrito):</b> {atrito} N <br>
-        3. <b>Força Resultante ($F_R$):</b> {forca} - {atrito} = <b>{forca_resultante} N</b><br>
-        <br>
-        <b>Aceleração gerada:</b><br>
-        $a = \frac{{{forca_resultante}}}{{{massa}}}$ = <b>{aceleracao:.2f} m/s²</b>
-        </div>
-        """, unsafe_allow_html=True)
+        1. **Força Normal ($N$):** $m \cdot g$ = {massa} $\cdot$ {g} = **{normal} N**
+        2. **Força de Atrito ($F_{{at}}$):** $\mu \cdot N$ = {mu:.2f} $\cdot$ {normal} = **{atrito:.1f} N**
+        3. **Força Aplicada ($F$):** **{forca:.1f} N**
+        4. **Força Resultante ($F_R$):** {forca} - {atrito:.1f} = **{forca_resultante:.1f} N**
+        """)
+        
+        st.markdown("---")
+        st.markdown("**Aceleração gerada:**")
+        st.markdown(rf"$$ a = \frac{{{forca_resultante:.1f}}}{{{massa}}} = {aceleracao:.2f} \text{{ m/s}}^2 $$")
         
         if forca_resultante == 0:
             st.warning("A força aplicada não é suficiente para vencer o atrito (ou é anulada por ele). O bloco permanece em repouso ou em Movimento Retilíneo Uniforme (MRU).")
@@ -262,57 +278,59 @@ elif topico == "Plano Inclinado (Decomposição)":
     
     st.markdown("""
     <div class="concept-card" style="border-left-color: #2ecc71;">
-        <b>Definição:</b> Em um plano inclinado, a força <b>Peso (P)</b>, que sempre aponta para o centro da Terra, é decomposta em duas direções: 
+        <b>Definição:</b> Em um plano inclinado, a força <b>Peso (P)</b> é decomposta em duas direções: 
         uma paralela ao plano ($P_x$) que causa o deslizamento, e outra perpendicular ($P_y$) que pressiona a superfície.
     </div>
     """, unsafe_allow_html=True)
     
+    g = 10  # Gravidade local
+    
     with st.sidebar:
         st.subheader("Parâmetros do Plano")
         massa_plano = st.slider("Massa do Bloco (kg)", 1.0, 50.0, 10.0, step=1.0)
-        angulo = st.slider("Ângulo de Inclinação (°)", 0, 80, 30, step=1)
-        st.info("Gravidade (g) adotada: **9.8 m/s²**")
+        angulo = st.slider("Ângulo de Inclinação (°)", 0, 90, 30, step=1)
+        st.info(f"Gravidade (g) adotada: **{g} m/s²**")
     
     # Cálculos
-    g = 9.8
     p = massa_plano * g
     ang_rad = math.radians(angulo)
     px = p * math.sin(ang_rad)
     py = p * math.cos(ang_rad)
     
-    st.markdown(f"""
-    <div class="formula-box">
-        P = m \cdot g \quad | \quad P_x = P \cdot \sin(\\theta) \quad | \quad P_y = P \cdot \cos(\\theta)
-    </div>
-    """, unsafe_allow_html=True)
+    # Equação principal com LaTeX limpo
+    st.markdown(r"$$ P = m \cdot g \quad | \quad P_x = P \cdot \sin(\theta) \quad | \quad P_y = P \cdot \cos(\theta) $$")
     
     col1, col2 = st.columns([3, 2])
     with col1:
         st.plotly_chart(plot_plano_inclinado(massa_plano, angulo), use_container_width=True)
     
     with col2:
-        st.subheader("🧮 Decomposição")
+        st.subheader("🧮 Decomposição Matemática")
+        
         st.markdown(f"""
-        <div style="font-size:1.1rem;line-height:2;">
-        <b>Dados Iniciais:</b><br>
-        Massa ($m$) = {massa_plano} kg<br>
-        Ângulo ($\\theta$) = {angulo}°<br>
-        Peso Total ($P$) = {massa_plano} $\\times$ {g} = <b>{p:.1f} N</b><br>
-        <hr>
-        <b>Componente Paralela ($P_x$):</b><br>
-        Responsável por puxar o bloco para baixo da rampa.<br>
-        $P_x = {p:.1f} \cdot \sin({angulo}^\circ)$ = <b>{px:.1f} N</b><br>
-        <hr>
-        <b>Componente Perpendicular ($P_y$):</b><br>
-        Pressiona o bloco contra a superfície (igual à Normal em módulos se não houver outras forças verticais).<br>
-        $P_y = {p:.1f} \cdot \cos({angulo}^\circ)$ = <b>{py:.1f} N</b>
-        </div>
-        """, unsafe_allow_html=True)
+        **Dados Iniciais:**
+        * Massa ($m$) = {massa_plano} kg
+        * Ângulo ($\theta$) = {angulo}°
+        * Peso Total ($P$) = {massa_plano} $\cdot$ {g} = **{p:.1f} N**
+        
+        ---
+        **Componente Paralela ($P_x$):**
+        Responsável por puxar o bloco para baixo da rampa.
+        """)
+        st.markdown(rf"$$ P_x = {p:.1f} \cdot \sin({angulo}^\circ) = {px:.1f} \text{{ N}} $$")
+        
+        st.markdown(f"""
+        ---
+        **Componente Perpendicular ($P_y$):**
+        Pressiona o bloco contra a superfície (equivalente à Normal em módulos).
+        """)
+        st.markdown(rf"$$ P_y = {p:.1f} \cdot \cos({angulo}^\circ) = {py:.1f} \text{{ N}} $$")
         
         st.markdown("""
         <div class="step-box">
-            <b>💡 Observação:</b> Note que se o ângulo for <b>0°</b>, $P_x$ se torna zero e $P_y$ assume o valor total do Peso. 
-            Se o ângulo for <b>90°</b> (queda livre), $P_x$ vira o peso total e $P_y$ é zero!
+            <b>💡 Tente ajustar para os extremos:</b><br>
+            Em <b>0°</b>, $P_x$ zera e todo o Peso vai para $P_y$. <br>
+            Em <b>90°</b> (queda livre), $P_y$ zera e todo o Peso vai para $P_x$!
         </div>
         """, unsafe_allow_html=True)
 
