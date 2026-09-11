@@ -48,30 +48,26 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================
-# FUNÇÕES DE PLOTAGEM COM VETORES PROPORCIONAIS
+# FUNÇÕES DE PLOTAGEM COM VETORES PROPORCIONAIS E TAMANHO MÍNIMO VISÍVEL
 # ============================================
 def plot_plano_horizontal(massa, forca_aplicada, mu):
-    """Desenha o bloco e ajusta o comprimento dos vetores proporcionalmente aos seus módulos"""
+    """Desenha o bloco e ajusta o comprimento dos vetores proporcionalmente aos seus módulos com piso mínimo"""
     fig = go.Figure()
     g = 10
     normal = massa * g
     atrito = normal * mu
 
-    # Fatores de escala para conversão de Newtons para unidades do gráfico
-    scale_f = 0.025  # Escala para forças horizontais (F e Fat)
-    scale_v = 0.012  # Escala para forças verticais (P e N)
-
     # Chão
-    fig.add_shape(type="rect", x0=-8, y0=-1, x1=8, y1=0,
+    fig.add_shape(type="rect", x0=-9, y0=-1, x1=9, y1=0,
                   fillcolor="#bdc3c7", line=dict(width=0))
     
     # Bloco (centro em x=0, y=1)
     fig.add_shape(type="rect", x0=-1.5, y0=0, x1=1.5, y1=2,
                   fillcolor="#3498db", line=dict(color="#2980b9", width=2))
     
-    # Vetor Força Aplicada (Direita) - Proporcional ao valor
+    # Vetor Força Aplicada (Direita) - Proporcional com tamanho mínimo visível
     if forca_aplicada > 0:
-        len_f = forca_aplicada * scale_f
+        len_f = 0.8 + forca_aplicada * 0.035
         fig.add_annotation(
             x=1.5 + len_f, y=1, ax=1.5, ay=1,
             xref='x', yref='y', axref='x', ayref='y',
@@ -79,9 +75,9 @@ def plot_plano_horizontal(massa, forca_aplicada, mu):
         )
         fig.add_annotation(x=1.5 + len_f / 2, y=1.5, text=f"F = {forca_aplicada:.1f} N", showarrow=False, font=dict(color="#2ecc71", size=13))
     
-    # Vetor Força de Atrito (Esquerda) - Proporcional ao valor
+    # Vetor Força de Atrito (Esquerda) - Proporcional com tamanho mínimo visível
     if atrito > 0:
-        len_at = atrito * scale_f
+        len_at = 0.8 + atrito * 0.035
         fig.add_annotation(
             x=-1.5 - len_at, y=0.5, ax=-1.5, ay=0.5,
             xref='x', yref='y', axref='x', ayref='y',
@@ -89,31 +85,31 @@ def plot_plano_horizontal(massa, forca_aplicada, mu):
         )
         fig.add_annotation(x=-1.5 - len_at / 2, y=1.0, text=f"Fat = {atrito:.1f} N", showarrow=False, font=dict(color="#e74c3c", size=13))
 
-    # Vetor Peso (Baixo) - Proporcional ao valor
-    len_p = normal * scale_v
+    # Vetor Peso (Baixo) - Proporcional com tamanho mínimo visível
+    len_p = 1.0 + normal * 0.012
     fig.add_annotation(
         x=0, y=1 - len_p, ax=0, ay=1, xref='x', yref='y', axref='x', ayref='y',
         showarrow=True, arrowhead=2, arrowwidth=3, arrowcolor="#9b59b6"
     )
-    fig.add_annotation(x=1.0, y=1 - len_p / 2, text=f"P = {normal:.1f} N", showarrow=False, font=dict(color="#9b59b6", size=13))
+    fig.add_annotation(x=1.2, y=1 - len_p / 2, text=f"P = {normal:.1f} N", showarrow=False, font=dict(color="#9b59b6", size=13))
 
-    # Vetor Normal (Cima) - Proporcional ao valor
-    len_n = normal * scale_v
+    # Vetor Normal (Cima) - Proporcional com tamanho mínimo visível
+    len_n = 1.0 + normal * 0.012
     fig.add_annotation(
         x=0, y=1 + len_n, ax=0, ay=1, xref='x', yref='y', axref='x', ayref='y',
         showarrow=True, arrowhead=2, arrowwidth=3, arrowcolor="#f39c12"
     )
-    fig.add_annotation(x=1.0, y=1 + len_n / 2, text=f"N = {normal:.1f} N", showarrow=False, font=dict(color="#f39c12", size=13))
+    fig.add_annotation(x=1.2, y=1 + len_n / 2, text=f"N = {normal:.1f} N", showarrow=False, font=dict(color="#f39c12", size=13))
 
     fig.update_layout(
-        xaxis=dict(range=[-8, 8], showgrid=False, zeroline=False, visible=False),
-        yaxis=dict(range=[-5, 7], showgrid=False, zeroline=False, visible=False),
+        xaxis=dict(range=[-9, 9], showgrid=False, zeroline=False, visible=False),
+        yaxis=dict(range=[-6, 8], showgrid=False, zeroline=False, visible=False),
         plot_bgcolor='white', margin=dict(l=0, r=0, t=10, b=10), height=380
     )
     return fig
 
 def plot_plano_inclinado(massa, angulo_deg):
-    """Decomposição no plano inclinado com comprimentos de vetores estritamente proporcionais"""
+    """Decomposição no plano inclinado com comprimentos de vetores proporcionais e tamanho mínimo visível"""
     fig = go.Figure()
     
     g = 10
@@ -122,7 +118,6 @@ def plot_plano_inclinado(massa, angulo_deg):
     px = peso * math.sin(ang_rad)
     py = peso * math.cos(ang_rad)
     
-    # Geometria do triângulo da rampa
     R = 10 
     L = R * math.cos(ang_rad)
     H = R * math.sin(ang_rad)
@@ -136,7 +131,7 @@ def plot_plano_inclinado(massa, angulo_deg):
     cx = L / 2
     cy = H / 2
     
-    s = 1.0 # Tamanho base do bloco
+    s = 1.0
     bx = cx + s * math.sin(ang_rad)
     by = cy + s * math.cos(ang_rad)
     
@@ -154,19 +149,16 @@ def plot_plano_inclinado(massa, angulo_deg):
         showlegend=False, hoverinfo="skip"
     ))
     
-    # Escala unificada de forças (500N max corresponde a ~4 unidades gráficas)
-    scale_force = 4.0 / 500.0
-    
-    # P (Peso total - apontando reto para baixo)
-    len_p = peso * scale_force
+    # P (Peso total) - Proporcional com piso mínimo
+    len_p = 1.2 + peso * 0.008
     fig.add_annotation(
         x=bx, y=by - len_p, ax=bx, ay=by, xref='x', yref='y', axref='x', ayref='y',
         showarrow=True, arrowhead=2, arrowwidth=3, arrowcolor="#9b59b6"
     )
-    fig.add_annotation(x=bx + 0.6, y=by - len_p / 2, text=f"P={peso:.1f}N", showarrow=False, font=dict(color="#9b59b6", size=12))
+    fig.add_annotation(x=bx + 0.8, y=by - len_p / 2, text=f"P={peso:.1f}N", showarrow=False, font=dict(color="#9b59b6", size=12))
     
-    # Normal (Perpendicular à rampa)
-    len_n = py * scale_force
+    # Normal / Py - Proporcional com piso mínimo
+    len_n = 1.2 + py * 0.008
     nx = bx + len_n * math.sin(ang_rad)
     ny = by + len_n * math.cos(ang_rad)
     fig.add_annotation(
@@ -175,7 +167,6 @@ def plot_plano_inclinado(massa, angulo_deg):
     )
     fig.add_annotation(x=nx + 0.6*math.sin(ang_rad), y=ny + 0.6*math.cos(ang_rad), text=f"N={py:.1f}N", showarrow=False, font=dict(color="#f39c12", size=12))
     
-    # Py (Perpendicular à rampa, sentido oposto)
     pyx = bx - len_n * math.sin(ang_rad)
     pyy = by - len_n * math.cos(ang_rad)
     fig.add_annotation(
@@ -184,19 +175,19 @@ def plot_plano_inclinado(massa, angulo_deg):
     )
     fig.add_annotation(x=pyx - 0.6*math.sin(ang_rad), y=pyy - 0.6*math.cos(ang_rad), text=f"Py={py:.1f}N", showarrow=False, font=dict(color="#e74c3c", size=12))
     
-    # Px (Paralelo à rampa, deslizando para baixo)
-    len_px = px * scale_force
+    # Px - Proporcional com piso mínimo
+    len_px = 1.2 + px * 0.008
     pxx = bx + len_px * math.cos(ang_rad)
     pxy = by - len_px * math.sin(ang_rad)
     fig.add_annotation(
         x=pxx, y=pxy, ax=bx, ay=by, xref='x', yref='y', axref='x', ayref='y',
         showarrow=True, arrowhead=2, arrowwidth=2, arrowcolor="#2ecc71"
     )
-    fig.add_annotation(x=pxx + 0.6*math.cos(ang_rad), y=pxy - 0.6*math.sin(ang_rad), text=f"Px={px:.1f}N", showarrow=False, font=dict(color="#2ecc71", size=12))
+    fig.add_annotation(x=pxx + 0.6*math.cos(ang_rad), y=pxy - 0.6*math.sin(ang_rad), text=f"Px={px:.1f}N", showarrow=False, font=dict(color="#2ecc71", size=13))
 
     fig.update_layout(
-        xaxis=dict(range=[-4, 14], showgrid=False, zeroline=False, visible=False),
-        yaxis=dict(range=[-5, 13], scaleanchor="x", scaleratio=1, showgrid=False, zeroline=False, visible=False),
+        xaxis=dict(range=[-4, 15], showgrid=False, zeroline=False, visible=False),
+        yaxis=dict(range=[-6, 14], scaleanchor="x", scaleratio=1, showgrid=False, zeroline=False, visible=False),
         plot_bgcolor='white', margin=dict(l=0, r=0, t=0, b=0), height=420
     )
     return fig
