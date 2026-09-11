@@ -48,68 +48,81 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================
-# FUNÇÕES DE PLOTAGEM COM VETORES PROPORCIONAIS E TAMANHO MÍNIMO VISÍVEL
+# FUNÇÕES DE PLOTAGEM COM AUTOSCALE DINÂMICO
 # ============================================
 def plot_plano_horizontal(massa, forca_aplicada, mu):
-    """Desenha o bloco e ajusta o comprimento dos vetores proporcionalmente aos seus módulos com piso mínimo"""
+    """Calcula os limites dinamicamente para que o gráfico faça o autoscale perfeito de acordo com os valores"""
     fig = go.Figure()
     g = 10
     normal = massa * g
     atrito = normal * mu
 
+    # Fator de escala proporcional
+    f_scale = 0.04
+    v_scale = 0.015
+
+    len_f = (forca_aplicada * f_scale) if forca_aplicada > 0 else 0
+    len_at = (atrito * f_scale) if atrito > 0 else 0
+    len_vert = normal * v_scale
+
     # Chão
-    fig.add_shape(type="rect", x0=-9, y0=-1, x1=9, y1=0,
+    max_x_chao = max(8.0, 2.0 + len_f, 2.0 + len_at)
+    fig.add_shape(type="rect", x0=-max_x_chao, y0=-1, x1=max_x_chao, y1=0,
                   fillcolor="#bdc3c7", line=dict(width=0))
     
     # Bloco (centro em x=0, y=1)
     fig.add_shape(type="rect", x0=-1.5, y0=0, x1=1.5, y1=2,
                   fillcolor="#3498db", line=dict(color="#2980b9", width=2))
     
-    # Vetor Força Aplicada (Direita) - Proporcional com tamanho mínimo visível
+    # Vetor Força Aplicada (Direita)
     if forca_aplicada > 0:
-        len_f = 0.8 + forca_aplicada * 0.035
+        x_end_f = 1.5 + max(1.5, len_f)
         fig.add_annotation(
-            x=1.5 + len_f, y=1, ax=1.5, ay=1,
+            x=x_end_f, y=1, ax=1.5, ay=1,
             xref='x', yref='y', axref='x', ayref='y',
             showarrow=True, arrowhead=2, arrowsize=1, arrowwidth=3, arrowcolor="#2ecc71"
         )
-        fig.add_annotation(x=1.5 + len_f / 2, y=1.5, text=f"F = {forca_aplicada:.1f} N", showarrow=False, font=dict(color="#2ecc71", size=13))
+        fig.add_annotation(x=1.5 + (x_end_f - 1.5)/2, y=1.5, text=f"F = {forca_aplicada:.1f} N", showarrow=False, font=dict(color="#2ecc71", size=13))
     
-    # Vetor Força de Atrito (Esquerda) - Proporcional com tamanho mínimo visível
+    # Vetor Força de Atrito (Esquerda)
     if atrito > 0:
-        len_at = 0.8 + atrito * 0.035
+        x_end_at = -1.5 - max(1.5, len_at)
         fig.add_annotation(
-            x=-1.5 - len_at, y=0.5, ax=-1.5, ay=0.5,
+            x=x_end_at, y=0.5, ax=-1.5, ay=0.5,
             xref='x', yref='y', axref='x', ayref='y',
             showarrow=True, arrowhead=2, arrowsize=1, arrowwidth=3, arrowcolor="#e74c3c"
         )
-        fig.add_annotation(x=-1.5 - len_at / 2, y=1.0, text=f"Fat = {atrito:.1f} N", showarrow=False, font=dict(color="#e74c3c", size=13))
+        fig.add_annotation(x=-1.5 + (x_end_at - (-1.5))/2, y=1.0, text=f"Fat = {atrito:.1f} N", showarrow=False, font=dict(color="#e74c3c", size=13))
 
-    # Vetor Peso (Baixo) - Proporcional com tamanho mínimo visível
-    len_p = 1.0 + normal * 0.012
+    # Vetor Peso (Baixo)
+    y_down = 1 - max(2.0, len_vert)
     fig.add_annotation(
-        x=0, y=1 - len_p, ax=0, ay=1, xref='x', yref='y', axref='x', ayref='y',
+        x=0, y=y_down, ax=0, ay=1, xref='x', yref='y', axref='x', ayref='y',
         showarrow=True, arrowhead=2, arrowwidth=3, arrowcolor="#9b59b6"
     )
-    fig.add_annotation(x=1.2, y=1 - len_p / 2, text=f"P = {normal:.1f} N", showarrow=False, font=dict(color="#9b59b6", size=13))
+    fig.add_annotation(x=1.2, y=1 + (y_down - 1)/2, text=f"P = {normal:.1f} N", showarrow=False, font=dict(color="#9b59b6", size=13))
 
-    # Vetor Normal (Cima) - Proporcional com tamanho mínimo visível
-    len_n = 1.0 + normal * 0.012
+    # Vetor Normal (Cima)
+    y_up = 1 + max(2.0, len_vert)
     fig.add_annotation(
-        x=0, y=1 + len_n, ax=0, ay=1, xref='x', yref='y', axref='x', ayref='y',
+        x=0, y=y_up, ax=0, ay=1, xref='x', yref='y', axref='x', ayref='y',
         showarrow=True, arrowhead=2, arrowwidth=3, arrowcolor="#f39c12"
     )
-    fig.add_annotation(x=1.2, y=1 + len_n / 2, text=f"N = {normal:.1f} N", showarrow=False, font=dict(color="#f39c12", size=13))
+    fig.add_annotation(x=1.2, y=1 + (y_up - 1)/2, text=f"N = {normal:.1f} N", showarrow=False, font=dict(color="#f39c12", size=13))
+
+    # Autoscale dinâmico dos limites do eixo baseado nos vetores gerados
+    lim_x = max_x_chao + 2.0
+    lim_y = max(4.0, abs(y_down), abs(y_up)) + 1.5
 
     fig.update_layout(
-        xaxis=dict(range=[-9, 9], showgrid=False, zeroline=False, visible=False),
-        yaxis=dict(range=[-6, 8], showgrid=False, zeroline=False, visible=False),
+        xaxis=dict(range=[-lim_x, lim_x], showgrid=False, zeroline=False, visible=False),
+        yaxis=dict(range=[-lim_y, lim_y], showgrid=False, zeroline=False, visible=False),
         plot_bgcolor='white', margin=dict(l=0, r=0, t=10, b=10), height=380
     )
     return fig
 
 def plot_plano_inclinado(massa, angulo_deg):
-    """Decomposição no plano inclinado com comprimentos de vetores proporcionais e tamanho mínimo visível"""
+    """Calcula os limites e proporções dinamicamente para o plano inclinado"""
     fig = go.Figure()
     
     g = 10
@@ -149,16 +162,19 @@ def plot_plano_inclinado(massa, angulo_deg):
         showlegend=False, hoverinfo="skip"
     ))
     
-    # P (Peso total) - Proporcional com piso mínimo
-    len_p = 1.2 + peso * 0.008
+    force_scale = 0.015
+    len_p = max(1.8, peso * force_scale)
+    len_n = max(1.8, py * force_scale)
+    len_px = max(1.8, px * force_scale)
+    
+    # P (Peso total)
     fig.add_annotation(
         x=bx, y=by - len_p, ax=bx, ay=by, xref='x', yref='y', axref='x', ayref='y',
         showarrow=True, arrowhead=2, arrowwidth=3, arrowcolor="#9b59b6"
     )
     fig.add_annotation(x=bx + 0.8, y=by - len_p / 2, text=f"P={peso:.1f}N", showarrow=False, font=dict(color="#9b59b6", size=12))
     
-    # Normal / Py - Proporcional com piso mínimo
-    len_n = 1.2 + py * 0.008
+    # Normal
     nx = bx + len_n * math.sin(ang_rad)
     ny = by + len_n * math.cos(ang_rad)
     fig.add_annotation(
@@ -167,6 +183,7 @@ def plot_plano_inclinado(massa, angulo_deg):
     )
     fig.add_annotation(x=nx + 0.6*math.sin(ang_rad), y=ny + 0.6*math.cos(ang_rad), text=f"N={py:.1f}N", showarrow=False, font=dict(color="#f39c12", size=12))
     
+    # Py
     pyx = bx - len_n * math.sin(ang_rad)
     pyy = by - len_n * math.cos(ang_rad)
     fig.add_annotation(
@@ -175,8 +192,7 @@ def plot_plano_inclinado(massa, angulo_deg):
     )
     fig.add_annotation(x=pyx - 0.6*math.sin(ang_rad), y=pyy - 0.6*math.cos(ang_rad), text=f"Py={py:.1f}N", showarrow=False, font=dict(color="#e74c3c", size=12))
     
-    # Px - Proporcional com piso mínimo
-    len_px = 1.2 + px * 0.008
+    # Px
     pxx = bx + len_px * math.cos(ang_rad)
     pxy = by - len_px * math.sin(ang_rad)
     fig.add_annotation(
@@ -185,9 +201,11 @@ def plot_plano_inclinado(massa, angulo_deg):
     )
     fig.add_annotation(x=pxx + 0.6*math.cos(ang_rad), y=pxy - 0.6*math.sin(ang_rad), text=f"Px={px:.1f}N", showarrow=False, font=dict(color="#2ecc71", size=13))
 
+    # Autoscale dinâmico para a rampa
+    max_dim = max(L, H) + 4.0
     fig.update_layout(
-        xaxis=dict(range=[-4, 15], showgrid=False, zeroline=False, visible=False),
-        yaxis=dict(range=[-6, 14], scaleanchor="x", scaleratio=1, showgrid=False, zeroline=False, visible=False),
+        xaxis=dict(range=[-3, max_dim], showgrid=False, zeroline=False, visible=False),
+        yaxis=dict(range=[-4, max_dim], scaleanchor="x", scaleratio=1, showgrid=False, zeroline=False, visible=False),
         plot_bgcolor='white', margin=dict(l=0, r=0, t=0, b=0), height=420
     )
     return fig
