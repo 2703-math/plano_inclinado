@@ -8,60 +8,79 @@ import math
 # ============================================
 st.set_page_config(
     page_title="Física Visual: Dinâmica",
-    page_icon="🍎",
+    page_icon="⚡",
     layout="wide"
 )
 
 # ============================================
-# CSS PROFISSIONAL (ESTILO SAAS / CORPORATIVO)
+# CSS PROFISSIONAL - ESTILO SAAS / DASHBOARD
 # ============================================
 st.markdown("""
 <style>
-    /* Ocultar elementos padrão do Streamlit para visual limpo de App */
+    /* Ocultar elementos padrão do Streamlit */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
 
-    /* Layout Geral */
+    /* Fundo geral da aplicação mais limpo (Off-white moderno) */
+    .stApp {
+        background-color: #f8fafc;
+    }
+
     .block-container {
         padding-top: 2rem;
         padding-bottom: 2rem;
     }
+
+    /* Títulos e Cabeçalhos */
     .main-title {
-        font-size: 2.3rem;
+        font-size: 2.2rem;
         font-weight: 800;
-        color: #1e293b;
+        color: #0f172a;
         text-align: center;
         margin-bottom: 0.2rem;
         letter-spacing: -0.5px;
     }
     .subtitle {
-        font-size: 1.1rem;
+        font-size: 1.05rem;
         color: #64748b;
         text-align: center;
         margin-bottom: 2rem;
         font-weight: 400;
     }
-    
-    /* Cartões Conceituais */
-    .concept-card {
+
+    /* Cartões do Dashboard (Cards) */
+    .dashboard-card {
         background: #ffffff;
         border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 1.2rem 1.5rem;
-        border-left: 5px solid #3b82f6;
+        border-radius: 14px;
+        padding: 1.5rem;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.2rem;
     }
-    
-    /* Caixas de Passos / Dicas */
-    .step-box {
-        background: #f8fafc;
+
+    .card-header {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 0.6rem;
+    }
+
+    /* Caixa de Fórmula Matemática */
+    .formula-box {
+        background: #f1f5f9;
+        border-radius: 8px;
+        padding: 0.8rem;
+        text-align: center;
+        font-family: monospace;
+        color: #334155;
+        margin: 1rem 0;
         border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        padding: 1.1rem;
-        margin: 0.8rem 0;
-        border-left: 5px solid #f59e0b;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -127,13 +146,12 @@ def plot_plano_horizontal(massa, forca_aplicada, mu):
     fig.update_layout(
         xaxis=dict(range=[-lim_x, lim_x], showgrid=False, zeroline=False, visible=False),
         yaxis=dict(range=[-lim_y, lim_y], showgrid=False, zeroline=False, visible=False),
-        plot_bgcolor='white', paper_bgcolor='white', margin=dict(l=0, r=0, t=10, b=10), height=380
+        plot_bgcolor='white', paper_bgcolor='white', margin=dict(l=0, r=0, t=10, b=10), height=350
     )
     return fig
 
 def plot_plano_inclinado(massa, angulo_deg):
     fig = go.Figure()
-    
     g = 10
     peso = massa * g
     ang_rad = math.radians(angulo_deg)
@@ -152,7 +170,6 @@ def plot_plano_inclinado(massa, angulo_deg):
     
     cx = L / 2
     cy = H / 2
-    
     s = 1.0
     bx = cx + s * math.sin(ang_rad)
     by = cy + s * math.cos(ang_rad)
@@ -210,122 +227,119 @@ def plot_plano_inclinado(massa, angulo_deg):
     fig.update_layout(
         xaxis=dict(range=[-3, max_dim], showgrid=False, zeroline=False, visible=False),
         yaxis=dict(range=[-4, max_dim], scaleanchor="x", scaleratio=1, showgrid=False, zeroline=False, visible=False),
-        plot_bgcolor='white', paper_bgcolor='white', margin=dict(l=0, r=0, t=0, b=0), height=420
+        plot_bgcolor='white', paper_bgcolor='white', margin=dict(l=0, r=0, t=0, b=0), height=380
     )
     return fig
 
 # ============================================
-# TÍTULO E ABAS SUPERIORES DE NAVEGAÇÃO
+# TÍTULO E ABAS SUPERIORES
 # ============================================
 st.markdown('<div class="main-title">🍎 Física Visual: Dinâmica</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">Entendendo as Leis de Newton e a Decomposição de Forças de forma interativa</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">Plataforma Interativa de Ensino de Mecânica Clássica</div>', unsafe_allow_html=True)
 
 tab1, tab2 = st.tabs([
-    "2ª Lei de Newton (Horizontal)", 
-    "Plano Inclinado (Decomposição)"
+    "  2ª Lei de Newton (Horizontal)  ", 
+    "  Plano Inclinado (Decomposição)  "
 ])
 
-g = 10  # Gravidade local
+g = 10
 
 # ============================================
-# ABA 1: 2ª LEI DE NEWTON (HORIZONTAL)
+# ABA 1: 2ª LEI DE NEWTON
 # ============================================
 with tab1:
-    st.markdown("""
-    <div class="concept-card" style="border-left-color: #3b82f6;">
-        <b>Princípio Fundamental:</b> A aceleração de um corpo é diretamente proporcional à força resultante que atua sobre ele e inversamente proporcional à sua massa.
-    </div>
-    """, unsafe_allow_html=True)
+    col_left, col_right = st.columns([1, 1.4], gap="medium")
     
-    col1, col2 = st.columns([1.5, 1], gap="large")
-    
-    with col1:
-        st.markdown("#### 🎛️ Parâmetros do Bloco")
-        massa = st.slider("Massa (kg)", 1.0, 50.0, 10.0, step=1.0, key="m1")
+    with col_left:
+        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+        st.markdown('<div class="card-header">⚙️ Controles do Sistema</div>', unsafe_allow_html=True)
+        
+        massa = st.slider("Massa do Bloco (kg)", 1.0, 50.0, 10.0, step=1.0, key="m1")
         forca = st.slider("Força Aplicada (N)", 0.0, 200.0, 80.0, step=5.0, key="f1")
         mu = st.slider("Coeficiente de Atrito (μ)", 0.0, 1.0, 0.3, step=0.05, key="mu1")
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Bloco de Métricas Principais estilo SaaS
+        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+        st.markdown('<div class="card-header">📊 Indicadores Chave (KPIs)</div>', unsafe_allow_html=True)
         
         normal = massa * g
         atrito = mu * normal
         forca_resultante = max(0.0, forca - atrito)
         aceleracao = forca_resultante / massa
         
+        m_col1, m_col2 = st.columns(2)
+        m_col1.metric("Força Resultante", f"{forca_resultante:.1f} N")
+        m_col2.metric("Aceleração", f"{aceleracao:.2f} m/s²", delta=f"{aceleracao:.1f}" if aceleracao > 0 else "Repouso")
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with col_right:
+        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+        st.markdown('<div class="card-header">🖥️ Simulação Gráfica em Tempo Real</div>', unsafe_allow_html=True)
         st.plotly_chart(plot_plano_horizontal(massa, forca, mu), use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
         
-    with col2:
-        st.markdown("#### 🧮 Raciocínio e Cálculos")
-        st.markdown(r"$$ F_R = m \cdot a \implies a = \frac{F_R}{m} $$")
-        
+        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+        st.markdown('<div class="card-header">🧮 Raciocínio Passo a Passo</div>', unsafe_allow_html=True)
+        st.markdown(r"$$ F_R = F - F_{at} = m \cdot a $$")
         st.markdown(f"""
-        1. **Força Normal ($N$):** $m \\cdot g$ = {massa} $\\cdot$ {g} = **{normal} N**  
-        2. **Força de Atrito ($F_{{at}}$):** $\\mu \\cdot N$ = {mu:.2f} $\\cdot$ {normal} = **{atrito:.1f} N**  
-        3. **Força Aplicada ($F$):** **{forca:.1f} N**  
-        4. **Força Resultante ($F_R$):** {forca} - {atrito:.1f} = **{forca_resultante:.1f} N**  
+        * **Normal ($N$):** $m \\cdot g = {massa} \\times {g} = {normal:.1f}\\text{{ N}}$
+        * **Atrito ($F_{{at}}$):** $\\mu \\cdot N = {mu} \\times {normal:.1f} = {atrito:.1f}\\text{{ N}}$
+        * **Resultante ($F_R$):** ${forca} - {atrito:.1f} = {forca_resultante:.1f}\\text{{ N}}$
         """)
-        
-        st.markdown("---")
-        st.markdown("**Aceleração gerada:**")
-        st.markdown(rf"$$ a = \frac{{{forca_resultante:.1f}}}{{{massa}}} = {aceleracao:.2f} \text{{ m/s}}^2 $$")
-        
-        if forca_resultante == 0:
-            st.warning("A força aplicada não é suficiente para vencer o atrito. O bloco permanece em repouso ou MRU.")
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # ============================================
 # ABA 2: PLANO INCLINADO
 # ============================================
 with tab2:
-    st.markdown("""
-    <div class="concept-card" style="border-left-color: #10b981;">
-        <b>Decomposição de Vetores:</b> Em um plano inclinado, a força <b>Peso (P)</b> é decomposta em duas direções: 
-        uma paralela ao plano (<b>P<sub>x</sub></b>) e outra perpendicular (<b>P<sub>y</sub></b>).
-    </div>
-    """, unsafe_allow_html=True)
+    col_left, col_right = st.columns([1, 1.4], gap="medium")
     
-    col1, col2 = st.columns([1.5, 1], gap="large")
-    
-    with col1:
-        st.markdown("#### 🎛️ Parâmetros do Plano")
+    with col_left:
+        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+        st.markdown('<div class="card-header">⚙️ Controles do Plano</div>', unsafe_allow_html=True)
+        
         massa_plano = st.slider("Massa do Bloco (kg)", 1.0, 50.0, 10.0, step=1.0, key="m2")
         angulo = st.slider("Ângulo de Inclinação (°)", 0, 90, 30, step=1, key="ang2")
+        
+        st.markdown('</div>', unsafe_allow_html=True)
         
         p = massa_plano * g
         ang_rad = math.radians(angulo)
         px = p * math.sin(ang_rad)
         py = p * math.cos(ang_rad)
         
+        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+        st.markdown('<div class="card-header">📊 Indicadores do Plano</div>', unsafe_allow_html=True)
+        
+        p_col1, p_col2 = st.columns(2)
+        p_col1.metric("Componente Paralela (Px)", f"{px:.1f} N")
+        p_col2.metric("Componente Perpendicular (Py)", f"{py:.1f} N")
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with col_right:
+        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+        st.markdown('<div class="card-header">🖥️ Decomposição Gráfica de Vetores</div>', unsafe_allow_html=True)
         st.plotly_chart(plot_plano_inclinado(massa_plano, angulo), use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
         
-    with col2:
-        st.markdown("#### 🧮 Decomposição Matemática")
-        st.markdown(r"$$ P = m \cdot g \quad | \quad P_x = P \cdot \sin(\theta) \quad | \quad P_y = P \cdot \cos(\theta) $$")
-        
+        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+        st.markdown('<div class="card-header">🧮 Equações Trigonométricas</div>', unsafe_allow_html=True)
+        st.markdown(r"$$ P_x = P \cdot \sin(\theta) \quad | \quad P_y = P \cdot \cos(\theta) $$")
         st.markdown(f"""
-        <div style="font-size:1.0rem;line-height:1.8;">
-        <b>Dados Iniciais:</b><br>
-        Massa (m) = {massa_plano} kg<br>
-        Ângulo (&theta;) = {angulo}°<br>
-        Peso Total (P) = {massa_plano} &times; {g} = <b>{p:.1f} N</b>
-        <hr>
-        <b>Componente Paralela (P<sub>x</sub>):</b> {px:.1f} N<br>
-        <b>Componente Perpendicular (P<sub>y</sub>):</b> {py:.1f} N
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown(rf"$$ P_x = {p:.1f} \cdot \sin({angulo}^\circ) = {px:.1f} \text{{ N}} $$")
-        st.markdown(rf"$$ P_y = {p:.1f} \cdot \cos({angulo}^\circ) = {py:.1f} \text{{ N}} $$")
-        
-        st.markdown("""
-        <div class="step-box">
-            <b>💡 Dica Prática:</b><br>
-            Em <b>0°</b>, <b>P<sub>x</sub></b> = 0 e <b>P<sub>y</sub></b> = P.<br>
-            Em <b>90°</b>, <b>P<sub>y</sub></b> = 0 e <b>P<sub>x</sub></b> = P.
-        </div>
-        """, unsafe_allow_html=True)
+        * **Peso Total ($P$):** ${p:.1f}\\text{{ N}}$
+        * **$P_x$ (Deslizamento):** ${p:.1f} \\cdot \\sin({angulo}^\\circ) = {px:.1f}\\text{{ N}}$
+        * **$P_y$ (Pressão):** ${p:.1f} \\cdot \\cos({angulo}^\\circ) = {py:.1f}\\text{{ N}}$
+        """)
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # Rodapé
 st.markdown("---")
 st.markdown("""
 <div style="text-align: center; color: #94a3b8; font-size: 0.85rem; padding: 1rem;">
-    🍎 <b>Física Visual</b> — Ferramenta educacional interativa de alto desempenho
+    ⚡ <b>Física Visual SaaS</b> — Plataforma Educacional de Alta Performance
 </div>
 """, unsafe_allow_html=True)
